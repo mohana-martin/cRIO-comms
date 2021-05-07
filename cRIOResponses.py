@@ -15,7 +15,7 @@ def r400(response):
 
 def r403(response):
     logger.critical(f"Status code: {response.status_code} - Failed: WebService on cRIO is inactive.")
-    errorMessage = r.json()
+    errorMessage = response.json()
     logger.critical(f"Response: {errorMessage}")
     raise cRIOWebServiceInactive(errorMessage)
     
