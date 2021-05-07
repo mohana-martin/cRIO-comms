@@ -16,8 +16,8 @@ import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
-from cRIOExceptions import URLError, cRIOBadRequest
-from cRIOFormats import cRIOSetpoint, cRIOConfigurationPIDController
+from .cRIOExceptions import URLError, cRIOBadRequest
+from .cRIOFormats import cRIOSetpoint, cRIOConfigurationPIDController
 
 class cRIOCaryaABC(abc.ABC):
     
