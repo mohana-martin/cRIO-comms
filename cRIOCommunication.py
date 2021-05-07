@@ -192,7 +192,7 @@ class cRIOCaryaV1(cRIOCaryaABC):
         r = requests.get(url)
 
         if r.status_code in RESPONSES:
-            RESPONSES[r.status_code](r):
+            return RESPONSES[r.status_code](r)
         else:
             raise cRIOUnknownStatusCode(r.status_code)
 ##        
