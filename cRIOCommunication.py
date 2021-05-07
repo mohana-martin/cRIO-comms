@@ -16,8 +16,10 @@ import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
-from .cRIOExceptions import URLError, cRIOBadRequest
+from .cRIOExceptions import URLError, cRIOBadRequest, cRIOWebServiceInactive
 from .cRIOFormats import cRIOSetpoint, cRIOConfigurationPIDController
+
+from .cRIOResponses import RESPONSES
 
 class cRIOCaryaABC(abc.ABC):
     
@@ -207,20 +209,28 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" + command
         logger.info(f"Accessing {url}")
         r = requests.put(url, json=setpoint)
-        if r.status_code == 200:
-            logger.debug("Setting setpoint succesful")
-            return True
-        elif r.status_code == 400:
-            logger.critical(f"The setpoint was not accepted by the cRIO")
-            errorMessage = r.json()
-            logger.critical(f"Response: {errorMessage}")
-            raise cRIOBadRequest(errorMessage)
-        elif r.status_code == 404:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Failed to set setpoint")
-        else:
-            logger.critical(f"Unknown error on cRIO side")
-            raise URLError(f"Failed to set setpoint")
+
+        return RESPONSES[r.status_code](r)
+##        
+##        if r.status_code == 200:
+##            logger.debug("Setting setpoint succesful")
+##            return True
+##        elif r.status_code == 400:
+##            logger.critical(f"The setpoint was not accepted by the cRIO")
+##            errorMessage = r.json()
+##            logger.critical(f"Response: {errorMessage}")
+##            raise cRIOBadRequest(errorMessage)
+##        elif r.status_code == 403:
+##            logger.critical(f"WebService on cRIO is inactive")
+##            errorMessage = r.json()
+##            logger.critical(f"Response: {errorMessage}")
+##            raise cRIOWebServiceInactive(errorMessage)
+##        elif r.status_code == 404:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Failed to set setpoint")
+##        else:
+##            logger.critical(f"Unknown error on cRIO side")
+##            raise URLError(f"Failed to set setpoint")
             
     def setMultipleSetpoints(self, setpoints):
         r"""Set one or more setpoints on the cRIO.
@@ -320,7 +330,4 @@ class cRIOCaryaV1(cRIOCaryaABC):
         else:
             logger.critical(f"Unknown error on cRIO side")
             raise URLError(f"Failed to configure controller")
-            
-
-        
 
