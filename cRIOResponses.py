@@ -1,11 +1,11 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from .cRIOExceptions import URLError, cRIOBadRequest, cRIOWebServiceInactive
+from .cRIOExceptions import cRIOURLError, cRIOBadRequest, cRIOWebServiceInactive
 
 def r200(response):
     logger.debug(f"Status code: {response.status_code} - Succes.")
-    return True
+    return response.json()
 
 def r400(response):
     logger.critical(f"Status code: {response.status_code} - Failed: Setting not accepted.")
@@ -21,7 +21,7 @@ def r403(response):
     
 def r404(response):
     logger.critical(f"Status code: {response.status_code} - Failed: Could not access {url} .")
-    raise URLError(f"Could not access the cRIO.")
+    raise cRIOURLError(f"Could not access the cRIO.")
 
 RESPONSES = {200: r200,
              400: r400,

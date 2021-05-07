@@ -16,7 +16,7 @@ import pandas as pd
 import logging
 logger = logging.getLogger(__name__)
 
-from .cRIOExceptions import URLError, cRIOBadRequest, cRIOWebServiceInactive
+from .cRIOExceptions import *
 from .cRIOFormats import cRIOSetpoint, cRIOConfigurationPIDController
 
 from .cRIOResponses import RESPONSES
@@ -170,13 +170,19 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" +command
         logger.info(f"Accessing {url}")
         r = requests.get(url)
-        if r.status_code == 200:
-             # TODO: No more degrees Celsius as symbol or m3 as symbol. Please degC and m^3!
-            alarmSettings = r.json()
-            return alarmSettings
+
+        if r.status_code in RESPONSES:
+            return RESPONSES[r.status_code](r)
         else:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Could not access {url}")
+            raise cRIOUnknownStatusCode(r.status_code)
+##        
+##        if r.status_code == 200:
+##             # TODO: No more degrees Celsius as symbol or m3 as symbol. Please degC and m^3!
+##            alarmSettings = r.json()
+##            return alarmSettings
+##        else:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Could not access {url}")
     
     def getSystemInformation(self):
         logger.info(f"Getting system information")
@@ -184,12 +190,18 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" + command
         logger.info(f"Accessing {url}")
         r = requests.get(url)
-        if r.status_code == 200:
-            systemSettings = r.json()
-            return systemSettings
+
+        if r.status_code in RESPONSES:
+            RESPONSES[r.status_code](r):
         else:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Could not access {url}")
+            raise cRIOUnknownStatusCode(r.status_code)
+##        
+##        if r.status_code == 200:
+##            systemSettings = r.json()
+##            return systemSettings
+##        else:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Could not access {url}")
  
     def setSetpoint(self, setpoint):
         r"""Set one setpoint on the cRIO.
@@ -210,7 +222,10 @@ class cRIOCaryaV1(cRIOCaryaABC):
         logger.info(f"Accessing {url}")
         r = requests.put(url, json=setpoint)
 
-        return RESPONSES[r.status_code](r)
+        if r.status_code in RESPONSES:
+            return RESPONSES[r.status_code](r)
+        else:
+            raise cRIOUnknownStatusCode(r.status_code)
 ##        
 ##        if r.status_code == 200:
 ##            logger.debug("Setting setpoint succesful")
@@ -251,20 +266,26 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" + command
         logger.info(f"Accessing {url}")
         r = requests.put(url, json=setpoints)
-        if r.status_code == 200:
-            logger.debug("Setting setpoints succesful")
-            return True
-        elif r.status_code == 400:
-            logger.critical(f"One or more of the setpoints were not accepted by the cRIO")
-            errorMessage = r.json()
-            logger.critical(f"Response: {errorMessage}")
-            raise cRIOBadRequest(errorMessage)
-        elif r.status_code == 404:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Failed to set setpoints")
+
+        if r.status_code in RESPONSES:
+            return RESPONSES[r.status_code](r)
         else:
-            logger.critical(f"Unknown error on cRIO side")
-            raise URLError(f"Failed to set setpoints")
+            raise cRIOUnknownStatusCode(r.status_code)
+        
+##        if r.status_code == 200:
+##            logger.debug("Setting setpoints succesful")
+##            return True
+##        elif r.status_code == 400:
+##            logger.critical(f"One or more of the setpoints were not accepted by the cRIO")
+##            errorMessage = r.json()
+##            logger.critical(f"Response: {errorMessage}")
+##            raise cRIOBadRequest(errorMessage)
+##        elif r.status_code == 404:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Failed to set setpoints")
+##        else:
+##            logger.critical(f"Unknown error on cRIO side")
+##            raise URLError(f"Failed to set setpoints")
     
     def switchDataLogging(self, datalogging=True):
         r"""Turn the internal datalogging on the cRIO On-Off.
@@ -284,20 +305,26 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" + command
         logger.debug(f"Accessing {url}")
         r = requests.put(url, json={"On?":datalogging})
-        if r.status_code == 200:
-            logger.debug("Switching of cRIO logging succesful")
-            return True
-        elif r.status_code == 400:
-            logger.critical(f"Switching was not accepted by the cRIO")
-            errorMessage = r.json()
-            logger.critical(f"Response: {errorMessage}")
-            raise cRIOBadRequest(errorMessage)
-        elif r.status_code == 404:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Failed to switch logging")
+
+        if r.status_code in RESPONSES:
+            return RESPONSES[r.status_code](r)
         else:
-            logger.critical(f"Unknown error on cRIO side")
-            raise URLError(f"Failed to switch logging")
+            raise cRIOUnknownStatusCode(r.status_code)
+        
+##        if r.status_code == 200:
+##            logger.debug("Switching of cRIO logging succesful")
+##            return True
+##        elif r.status_code == 400:
+##            logger.critical(f"Switching was not accepted by the cRIO")
+##            errorMessage = r.json()
+##            logger.critical(f"Response: {errorMessage}")
+##            raise cRIOBadRequest(errorMessage)
+##        elif r.status_code == 404:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Failed to switch logging")
+##        else:
+##            logger.critical(f"Unknown error on cRIO side")
+##            raise URLError(f"Failed to switch logging")
     
     def configurePIDController(self, configuration):
         r"""Configure one of the PID controllers that is running on the cRIO.
@@ -316,18 +343,24 @@ class cRIOCaryaV1(cRIOCaryaABC):
         url = self.ip + "/" + command
         logger.info(f"Accessing {url}")
         r = requests.put(url, json=configuration)
-        if r.status_code == 200:
-            logger.debug("Configuration succesful")
-            return True
-        elif r.status_code == 400:
-            logger.critical(f"Configuration was not accepted by the cRIO")
-            errorMessage = r.json()
-            logger.critical(f"Response: {errorMessage}")
-            raise cRIOBadRequest(errorMessage)
-        elif r.status_code == 404:
-            logger.critical(f"Could not access {url} - status code: {r.status_code}")
-            raise URLError(f"Failed to configure controller")
+
+        if r.status_code in RESPONSES:
+            return RESPONSES[r.status_code](r)
         else:
-            logger.critical(f"Unknown error on cRIO side")
-            raise URLError(f"Failed to configure controller")
+            raise cRIOUnknownStatusCode(r.status_code)
+##        
+##        if r.status_code == 200:
+##            logger.debug("Configuration succesful")
+##            return True
+##        elif r.status_code == 400:
+##            logger.critical(f"Configuration was not accepted by the cRIO")
+##            errorMessage = r.json()
+##            logger.critical(f"Response: {errorMessage}")
+##            raise cRIOBadRequest(errorMessage)
+##        elif r.status_code == 404:
+##            logger.critical(f"Could not access {url} - status code: {r.status_code}")
+##            raise URLError(f"Failed to configure controller")
+##        else:
+##            logger.critical(f"Unknown error on cRIO side")
+##            raise URLError(f"Failed to configure controller")
 
