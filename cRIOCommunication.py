@@ -280,3 +280,4 @@ class cRIOCaryaV1(cRIOCaryaABC):
         else:
             raise cRIOUnknownStatusCode(r.status_code)
 
+cRIOWebServerComms = cRIOCaryaV1
